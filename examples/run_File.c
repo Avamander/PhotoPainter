@@ -163,6 +163,18 @@ void ls(const char *dir) {
     f_closedir(&dj);
 }
 
+// adapted from https://stackoverflow.com/a/744822
+bool EndsWith(const char *str, const char *suffix)
+{
+    if (!str || !suffix)
+        return 0;
+    size_t lenstr = strlen(str);
+    size_t lensuffix = strlen(suffix);
+    if (lensuffix >  lenstr)
+        return 0;
+    return strncasecmp(str + lenstr - lensuffix, suffix, lensuffix) == 0;
+}
+
 /* 
     function: 
         Query the images in the directory and save their names to the appropriate file
@@ -218,7 +230,7 @@ void ls2file(const char *dir, const char *path) {
         }
         /* Create a string that includes the file name, the file size and the
          attributes string. */
-        if(fno.fname) {
+        if(!(fno.fattrib & AM_DIR) && fno.fname[0] != '.' && EndsWith(fno.fname, ".bmp")) {
             // f_printf(&fil, "%d %s\r\n", filNum, fno.fname);
             f_printf(&fil, "pic/%s\r\n", fno.fname);
             filNum++;
