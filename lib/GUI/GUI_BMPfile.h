@@ -48,7 +48,7 @@ typedef struct BMP_FILE_HEADER {
 typedef struct BMP_INFO {
     UDOUBLE biInfoSize;      //The size of the header
     UDOUBLE biWidth;         //The width of the image
-    UDOUBLE biHeight;        //The height of the image
+    SDOUBLE biHeight;        //The height of the image
     UWORD biPlanes;          //The number of planes in the image
     UWORD biBitCount;        //The number of bits per pixel
     UDOUBLE biCompression;   //Compression type
@@ -68,6 +68,6 @@ typedef struct RGB_QUAD {
 } __attribute__ ((packed)) BMPRGBQUAD;
 /**************************************** end ***********************************************/
 
-UBYTE GUI_ReadBmp_RGB_7Color(const char *path, UWORD Xstart, UWORD Ystart);
+bool GUI_ReadBmp_RGB_7Color(const char *path, UWORD Xstart, UWORD Ystart);
 
 #endif

@@ -62,6 +62,10 @@
 #define UWORD   uint16_t
 #define UDOUBLE uint32_t
 
+#define SBYTE  int8_t
+#define SWORD   int16_t
+#define SDOUBLE int32_t
+
 #define EPD_SPI_PORT 	spi1
 #define SD_SPI_PORT 	spi0
 #define RTC_I2C_PORT    i2c1

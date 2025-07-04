@@ -61,15 +61,17 @@ int EPD_7in3f_display_BMP(const char *path, float vol)
     Paint_SelectImage(BlackImage);
     Paint_Clear(EPD_7IN3F_WHITE);
     
-    GUI_ReadBmp_RGB_7Color(path, 0, 0);
+    if (!GUI_ReadBmp_RGB_7Color(path, 0, 0)) {
+        Paint_DrawString_EN(10, 42, "Image cannot be displayed.", &Font16, EPD_7IN3F_BLACK, EPD_7IN3F_WHITE);
+        Paint_DrawString_EN(10, 58, path, &Font16, EPD_7IN3F_BLACK, EPD_7IN3F_WHITE);
+    }
 
-    if(Paint_GetRotate() == 90)
-        Paint_SetRotate(270);
-    else
-        Paint_SetRotate(180);
-    char strvol[21] = {0};
-    sprintf(strvol, "%f V", vol);
+    Paint_SetRotate((Paint_GetRotate() + 180) % 360);
+
     if(vol < 3.3) {
+        char strvol[21] = {0};
+        sprintf(strvol, "%f V", vol);
+
         Paint_DrawString_EN(10, 10, "Low voltage, please charge in time.", &Font16, EPD_7IN3F_BLACK, EPD_7IN3F_WHITE);
         Paint_DrawString_EN(10, 26, strvol, &Font16, EPD_7IN3F_BLACK, EPD_7IN3F_WHITE);
     }
