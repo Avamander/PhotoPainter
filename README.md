@@ -1,5 +1,7 @@
 # PhotoPainter
 
+This is a fork of PhotoPainter for WaveShare picture frame displays that can be built and uploaded using the Arduino IDE. Depends on Avamander/FatFS-SPI library being installed separately.
+
 ## Waveshare Electronics
 waveshare electronics</br>
 ![waveshare_logo.png](waveshare_logo.png)
