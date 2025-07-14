@@ -27,14 +27,8 @@
 # THE SOFTWARE.
 #
 ******************************************************************************/
-#ifndef _EPD_TEST_H_
-#define _EPD_TEST_H_
-
-int EPD_7in3f_test(void);
+#pragma once
+int EPD_7in3f_test();
 
 int EPD_7in3f_display(float vol);
 int EPD_7in3f_display_BMP(const char *path, float vol);
-
-
-#endif
-

@@ -38,35 +38,35 @@
 
 /*Bitmap file header   14bit*/
 typedef struct BMP_FILE_HEADER {
-    uint16_t bType;        //File identifier
-    uint32_t bSize;      //The size of the file
-    uint16_t bReserved1;   //Reserved value, must be set to 0
-    uint16_t bReserved2;   //Reserved value, must be set to 0
-    uint32_t bOffset;    //The offset from the beginning of the file header to the beginning of the image data bit
-} __attribute__ ((packed)) BMPFILEHEADER;    // 14bit
+  uint16_t bType;                         //File identifier
+  uint32_t bSize;                         //The size of the file
+  uint16_t bReserved1;                    //Reserved value, must be set to 0
+  uint16_t bReserved2;                    //Reserved value, must be set to 0
+  uint32_t bOffset;                       //The offset from the beginning of the file header to the beginning of the image data bit
+} __attribute__((packed)) BMPFILEHEADER;  // 14bit
 
 /*Bitmap information header  40bit*/
 typedef struct BMP_INFO {
-    uint32_t biInfoSize;      //The size of the header
-    uint32_t biWidth;         //The width of the image
-    int32_t biHeight;        //The height of the image
-    uint16_t biPlanes;          //The number of planes in the image
-    uint16_t biBitCount;        //The number of bits per pixel
-    uint32_t biCompression;   //Compression type
-    uint32_t bimpImageSize;   //The size of the image, in bytes
-    uint32_t biXPelsPerMeter; //Horizontal resolution
-    uint32_t biYPelsPerMeter; //Vertical resolution
-    uint32_t biClrUsed;       //The number of colors used
-    uint32_t biClrImportant;  //The number of important colors
-} __attribute__ ((packed)) BMPINFOHEADER;
+  uint32_t biInfoSize;       //The size of the header
+  uint32_t biWidth;          //The width of the image
+  int32_t biHeight;          //The height of the image
+  uint16_t biPlanes;         //The number of planes in the image
+  uint16_t biBitCount;       //The number of bits per pixel
+  uint32_t biCompression;    //Compression type
+  uint32_t bimpImageSize;    //The size of the image, in bytes
+  uint32_t biXPelsPerMeter;  //Horizontal resolution
+  uint32_t biYPelsPerMeter;  //Vertical resolution
+  uint32_t biClrUsed;        //The number of colors used
+  uint32_t biClrImportant;   //The number of important colors
+} __attribute__((packed)) BMPINFOHEADER;
 
 /*Color table: palette */
 typedef struct RGB_QUAD {
-    uint8_t rgbBlue;               //Blue intensity
-    uint8_t rgbGreen;              //Green strength
-    uint8_t rgbRed;                //Red intensity
-    uint8_t rgbReversed;           //Reserved value
-} __attribute__ ((packed)) BMPRGBQUAD;
+  uint8_t rgbBlue;      //Blue intensity
+  uint8_t rgbGreen;     //Green strength
+  uint8_t rgbRed;       //Red intensity
+  uint8_t rgbReversed;  //Reserved value
+} __attribute__((packed)) BMPRGBQUAD;
 /**************************************** end ***********************************************/
 
 bool GUI_ReadBmp_RGB_7Color(const char *path, uint16_t Xstart, uint16_t Ystart);

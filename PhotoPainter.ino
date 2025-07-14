@@ -29,7 +29,7 @@ float measureVBAT() {
   const float conversion_factor = 3.3f / (1 << 12);
   uint16_t result = adc_read();
   voltage = result * conversion_factor * 3;
-  printf("Raw value: 0x%03x, voltage: %f V\n", result, voltage);
+  printf("[%s]: Raw value: 0x%03x, voltage: %f V\n", __FILE_NAME__, result, voltage);
   return voltage;
 }
 
@@ -65,7 +65,7 @@ void setup() {
   alarmTime.hours += 24;
   char isCard = 0;
 
-  Serial.println("Init...\r\n");
+  printf("[%s]: Init...\n", __FILE_NAME__);
   if (DEV_Module_Init() != 0) {  // DEV init
     //return -1;
   }
@@ -77,13 +77,13 @@ void setup() {
   gpio_set_irq_enabled_with_callback(CHARGE_STATE, GPIO_IRQ_EDGE_RISE | GPIO_IRQ_EDGE_FALL, true, reinterpret_cast<gpio_irq_callback_t>(chargeState_callback));
 
   if (measureVBAT() < 3.1) {  // battery power is low
-    Serial.println("low power ...\r\n");
+    printf("[%s]: low power...\n", __FILE_NAME__);
     PCF85063_alarm_Time_Disable();
     ledLowPower();  // LED flash for Low power
     powerOff();     // BAT off
     //return 0;
   } else {
-    Serial.println("work ...\r\n");
+    printf("[%s]: work...\n", __FILE_NAME__);
     ledPowerOn();
   }
 
@@ -113,14 +113,14 @@ void setup() {
 
 #if enChargingRtc
       if (!gpio_get(RTC_INT)) {  // RTC interrupt trigger
-        Serial.println("rtc interrupt\r\n");
+        printf("[%s]: rtc interrupt\n", __FILE_NAME__);
         watchdog_update();
         run_display(Time, alarmTime, isCard);
       }
 #endif
 
       if (!gpio_get(BAT_STATE)) {  // KEY pressed
-        Serial.println("key interrupt\r\n");
+        printf("[%s]: key interrupt\n", __FILE_NAME__);
         watchdog_update();
         run_display(Time, alarmTime, isCard);
       }
@@ -128,7 +128,8 @@ void setup() {
     }
   }
 
-  Serial.println("power off ...\r\n");
+
+  printf("[%s]: power off...\n", __FILE_NAME__);
   powerOff();  // BAT off
 
   //return 0;
@@ -185,7 +186,7 @@ uint8_t DEV_Module_Init() {
   // GPIO Config
   DEV_GPIO_Init();
 
-  Serial.println("DEV_Module_Init OK \r\n");
+  printf("[%s]: DEV_Module_Init OK\n", __FILE_NAME__);
   return 0;
 }
 

@@ -75,24 +75,24 @@ parameter:
 static void EPD_7IN3F_ReadBusyH(void) {
   int cnt = 0;
   watchdog_update();
-  Serial.println("e-Paper busy H\r\n");
+  printf("[%s]: e-Paper busy H\n", __FILE_NAME__);
   while (!gpio_get(EPD_BUSY_PIN)) {  //LOW: idle, HIGH: busy
     delay(10);
     cnt++;
     if (cnt > 5000) {
-      Serial.println("e-Paper busy H force release\r\n");
+      printf("[%s]: e-Paper busy H force release\n", __FILE_NAME__);
       return;
     }
   }
-  Serial.println("e-Paper busy H release\r\n");
+  printf("[%s]: e-Paper busy H release\n", __FILE_NAME__);
 }
 static void EPD_7IN3F_ReadBusyL(void) {
   watchdog_update();
-  Serial.println("e-Paper busy L\r\n");
+  printf("[%s]: e-Paper busy L\n", __FILE_NAME__);
   while (gpio_get(EPD_BUSY_PIN)) {  //LOW: idle, HIGH: busy
     delay(5);
   }
-  Serial.println("e-Paper busy L release\r\n");
+  printf("[%s]: e-Paper busy L release\n", __FILE_NAME__);
 }
 
 /******************************************************************************

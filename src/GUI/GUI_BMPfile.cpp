@@ -81,10 +81,10 @@ bool GUI_ReadBmp_RGB_7Color(const char* path, uint16_t Xstart, uint16_t Ystart) 
   FRESULT fr;
   FIL fil;
   UINT br;
-  printf("open %s", path);
+  printf("[%s]: open %s", __FILE_NAME__, path);
   fr = f_open(&fil, path, FA_READ);
   if (FR_OK != fr && FR_EXIST != fr) {
-    printf("f_open(%s) error: %s (%d)\n", path, FRESULT_str(fr), fr);
+    printf("[%s]: f_open(%s) error: %s (%d)\n", __FILE_NAME__, path, FRESULT_str(fr), fr);
     return false;
   }
 
@@ -92,14 +92,14 @@ bool GUI_ReadBmp_RGB_7Color(const char* path, uint16_t Xstart, uint16_t Ystart) 
   f_lseek(&fil, 0);
   f_read(&fil, &bmpFileHeader, sizeof(BMPFILEHEADER), &br);  // sizeof(BMPFILEHEADER) must be 14
   if (br != sizeof(BMPFILEHEADER)) {
-    printf("f_read bmpFileHeader error\r\n");
+    printf("[%s]: f_read bmpFileHeader error\n", __FILE_NAME__);
     // printf("br is %d\n", br);
     f_close(&fil);
     return false;
   }
   f_read(&fil, &bmpInfoHeader, sizeof(BMPINFOHEADER), &br);  // sizeof(BMPFILEHEADER) must be 50
   if (br != sizeof(BMPINFOHEADER)) {
-    printf("f_read bmpInfoHeader error\r\n");
+    printf("[%s]: f_read bmpInfoHeader error\n", __FILE_NAME__);
     // printf("br is %d\n", br);
     f_close(&fil);
     return false;
@@ -113,23 +113,23 @@ bool GUI_ReadBmp_RGB_7Color(const char* path, uint16_t Xstart, uint16_t Ystart) 
     Paint_SetRotate(bmpInfoHeader.biHeight < 0 ? 270 : 90);
   }
 
-  printf("pixel = %lu * %lu\r\n", bmpInfoHeader.biWidth, bmpInfoHeader.biHeight);
+  printf("[%s]: pixel = %lu * %lu\n", __FILE_NAME__, bmpInfoHeader.biWidth, bmpInfoHeader.biHeight);
 
   // Determine if it is a monochrome or compressed bitmap
   if (bmpInfoHeader.biBitCount != 24) {
-    printf("image is not 24bpp bitmap!\r\n");
+    printf("[%s]: image is not 24bpp bitmap!\n", __FILE_NAME__);
     f_close(&fil);
     return false;
   }
   if (bmpInfoHeader.biCompression != 0) {
-    printf("image is compressed!\r\n");
+    printf("[%s]: image is compressed!\n", __FILE_NAME__);
     f_close(&fil);
     return false;
   }
 
   // Calculate overscan (round up to next multiple of 4)
   unsigned int overscan = ((bmpInfoHeader.biWidth * 3 + 3) & ~3) - bmpInfoHeader.biWidth * 3;
-  printf("overscan %d\r\n", overscan);
+  printf("[%s]: overscan %d\n", __FILE_NAME__, overscan);
 
   // Read image data into the cache
   uint16_t x, y;
@@ -137,7 +137,7 @@ bool GUI_ReadBmp_RGB_7Color(const char* path, uint16_t Xstart, uint16_t Ystart) 
 
   f_lseek(&fil, bmpFileHeader.bOffset);
 
-  printf("read data\n");
+  printf("[%s]: read data\n", __FILE_NAME__);
 
   // two rows of rgb888 pixel error to avoid a full image copy in memory
   // the first and last pixel columns are a border for more efficiency, as no range checks are needed
@@ -148,18 +148,19 @@ bool GUI_ReadBmp_RGB_7Color(const char* path, uint16_t Xstart, uint16_t Ystart) 
   for (y = 0; y < height; y++) {                   //Total display column
     for (x = 0; x < bmpInfoHeader.biWidth; x++) {  //Show a line in the line
       if (f_read(&fil, Rdata, 3, &br) != FR_OK) {
-        perror("get bmpdata:\r\n");
+        printf("[%s]: error get bmpdata:\n", __FILE_NAME__);
         f_close(&fil);
         return false;
       } else if (br != 3) {
-        printf("early eof\r\n");
+        printf("[%s]: error early eof\n", __FILE_NAME__);
         f_close(&fil);
         return false;
       }
 
       // add original pixel data to dither line buffer in correct order
-      for (int channel = 0; channel < 3; channel++)
+      for (uint8_t channel = 0; channel < 3; channel++) {
         GUI_AddClampedDelta(&dither_lines[x + 1][0][channel], (int)GUI_ChannelGammaLut[channel][Rdata[2 - channel]]);
+      }
 
       // find closest palette color
       uint8_t color_min_delta_idx = 0;
@@ -171,18 +172,20 @@ bool GUI_ReadBmp_RGB_7Color(const char* path, uint16_t Xstart, uint16_t Ystart) 
           color_delta += channel_val * channel_val;
         }
 
-        if (color_delta >= color_min_delta)
+        if (color_delta >= color_min_delta) {
           continue;
+        }
 
         color_min_delta = color_delta;
         color_min_delta_idx = color_idx;
 
-        if (color_min_delta == 0)
+        if (color_min_delta == 0) {
           break;
+        }
       }
 
       // perform dithering per color component channel
-      for (int channel = 0; channel < 3; channel++) {
+      for (uint8_t channel = 0; channel < 3; channel++) {
         int error = (int)dither_lines[x + 1][0][channel] - (int)GUI_ColorMap[color_min_delta_idx][channel];
         GUI_AddClampedDelta(&dither_lines[x + 1 + 1][0][channel], (error * 7) / 16);
         GUI_AddClampedDelta(&dither_lines[x - 1 + 1][1][channel], (error * 3) / 16);
@@ -195,19 +198,20 @@ bool GUI_ReadBmp_RGB_7Color(const char* path, uint16_t Xstart, uint16_t Ystart) 
 
     // shift dither line buffer up
     for (int col = 0; col < dither_line_width; col++) {
-      for (int channel = 0; channel < 3; channel++) {
+      for (uint8_t channel = 0; channel < 3; channel++) {
         dither_lines[col][0][channel] = dither_lines[col][1][channel];
         dither_lines[col][1][channel] = 0;
       }
     }
 
     // skip overscan (all bitmap rows need to be aligned to 4 byte lengths)
-    if (overscan > 0)
+    if (overscan > 0) {
       f_lseek(&fil, f_tell(&fil) + overscan);
+    }
 
     watchdog_update();
   }
-  printf("close file\n");
+  printf("[%s]: close file\n", __FILE_NAME__);
   f_close(&fil);
 
   return true;

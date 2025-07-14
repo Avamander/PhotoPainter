@@ -82,5 +82,5 @@ parameter:
 Info:
 ******************************************************************************/
 void DEV_Module_Exit(void) {
-	printf("Module exit \r\n");
+	printf("[%s]: Module exit \r\n", __FILE_NAME__);
 }

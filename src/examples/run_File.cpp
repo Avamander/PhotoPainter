@@ -17,14 +17,14 @@ int scanFileNum = 0;                          // The number of images scanned
 static sd_card_t *sd_get_by_name(const char *const name) {
   for (size_t i = 0; i < sd_get_num(); ++i)
     if (0 == strcmp(sd_get_by_num(i)->pcName, name)) return sd_get_by_num(i);
-  // DBG_Serial.println("%s: unknown name %s\n", __func__, name);
+  // printf("[%s]: %s: unknown name %s\n", __FILE_NAME__, __func__, name);
   return NULL;
 }
 
 static FATFS *sd_get_fs_by_name(const char *name) {
   for (size_t i = 0; i < sd_get_num(); ++i)
     if (0 == strcmp(sd_get_by_num(i)->pcName, name)) return &sd_get_by_num(i)->fatfs;
-  // DBG_Serial.println("%s: unknown name %s\n", __func__, name);
+  // printf("[%s]: %s: unknown name %s\n", __FILE_NAME__, __func__, name);
   return NULL;
 }
 
@@ -39,12 +39,12 @@ void run_mount() {
   if (!arg1) arg1 = sd_get_by_num(0)->pcName;
   FATFS *p_fs = sd_get_fs_by_name(arg1);
   if (!p_fs) {
-    printf("Unknown logical drive number: \"%s\"\n", arg1);
+    printf("[%s]: Unknown logical drive number: \"%s\"\n", __FILE_NAME__, arg1);
     return;
   }
   FRESULT fr = f_mount(p_fs, arg1, 1);
   if (FR_OK != fr) {
-    printf("f_mount error: %s (%d)\n", FRESULT_str(fr), fr);
+    printf("[%s]: f_mount error: %s (%d)\n", __FILE_NAME__, FRESULT_str(fr), fr);
     return;
   }
   sd_card_t *pSD = sd_get_by_name(arg1);
@@ -63,12 +63,12 @@ void run_unmount() {
   if (!arg1) arg1 = sd_get_by_num(0)->pcName;
   FATFS *p_fs = sd_get_fs_by_name(arg1);
   if (!p_fs) {
-    printf("Unknown logical drive number: \"%s\"\n", arg1);
+    printf("[%s]: Unknown logical drive number: \"%s\"\n", __FILE_NAME__, arg1);
     return;
   }
   FRESULT fr = f_unmount(arg1);
   if (FR_OK != fr) {
-    printf("f_unmount error: %s (%d)\n", FRESULT_str(fr), fr);
+    printf("[%s]: f_unmount error: %s (%d)\n", __FILE_NAME__, FRESULT_str(fr), fr);
     return;
   }
   sd_card_t *pSD = sd_get_by_name(arg1);
@@ -85,27 +85,27 @@ void run_unmount() {
 static void run_cat(const char *path) {
   // char *arg1 = strtok(NULL, " ");
   if (!path) {
-    printf("Missing argument\n");
+    printf("[%s]: Missing argument\n", __FILE_NAME__);
     return;
   }
   FIL fil;
   FRESULT fr = f_open(&fil, path, FA_READ);
   if (FR_OK != fr) {
-    printf("f_open error: %s (%d) %s\n", FRESULT_str(fr), fr, path);
+    printf("[%s]: f_open(%s) error: %s (%d)\n", __FILE_NAME__, path, FRESULT_str(fr), fr);
     return;
   }
   char buf[256];
   int i = 0;
   while (f_gets(buf, sizeof buf, &fil)) {
-    printf("%5d,%s", ++i, buf);
+    printf("[%s]: %5d,%s\n", __FILE_NAME__, ++i, buf);
   }
 
-  printf("The number of file names read is %d", i);
+  printf("[%s]: The number of file names read is %d\n", __FILE_NAME__, i);
   scanFileNum = i;
 
   fr = f_close(&fil);
   if (FR_OK != fr)
-    printf("f_close error: %s (%d) %s\n", FRESULT_str(fr), fr, path);
+    printf("[%s]: f_close(%s) error: %s (%d)\n", __FILE_NAME__, path, FRESULT_str(fr), fr);
 }
 
 /* 
@@ -123,19 +123,19 @@ void ls(const char *dir) {
   } else {
     fr = f_getcwd(cwdbuf, sizeof cwdbuf);
     if (FR_OK != fr) {
-      printf("f_getcwd error: %s (%d)\n", FRESULT_str(fr), fr);
+      printf("[%s]: f_getcwd(%s) error: %s (%d)\n", __FILE_NAME__, dir, FRESULT_str(fr), fr);
       return;
     }
     p_dir = cwdbuf;
   }
-  printf("Directory Listing: %s\n", p_dir);
+  printf("[%s]: Directory Listing: %s\n", __FILE_NAME__, p_dir);
   DIR dj;      /* Directory object */
   FILINFO fno; /* File information */
   memset(&dj, 0, sizeof dj);
   memset(&fno, 0, sizeof fno);
   fr = f_findfirst(&dj, &fno, p_dir, "*");
   if (FR_OK != fr) {
-    printf("f_findfirst error: %s (%d)\n", FRESULT_str(fr), fr);
+    printf("[%s]: f_findfirst error: %s (%d)\n", __FILE_NAME__, FRESULT_str(fr), fr);
     return;
   }
   while (fr == FR_OK && fno.fname[0]) { /* Repeat while an item is found */
@@ -155,7 +155,7 @@ void ls(const char *dir) {
     }
     /* Create a string that includes the file name, the file size and the
          attributes string. */
-    printf("%s [%s] [size=%llu]\n", fno.fname, pcAttrib, fno.fsize);
+    printf("[%s]: %s [%s] [size=%llu]\n", __FILE_NAME__, fno.fname, pcAttrib, fno.fsize);
 
     fr = f_findnext(&dj, &fno); /* Search for next item */
   }
@@ -189,19 +189,19 @@ void ls2file(const char *dir, const char *path) {
   } else {
     fr = f_getcwd(cwdbuf, sizeof cwdbuf);
     if (FR_OK != fr) {
-      printf("f_getcwd error: %s (%d)\n", FRESULT_str(fr), fr);
+      printf("[%s]: f_getcwd error: %s (%d)\n", __FILE_NAME__, FRESULT_str(fr), fr);
       return;
     }
     p_dir = cwdbuf;
   }
-  printf("Directory Listing: %s\n", p_dir);
+  printf("[%s]: Directory Listing: %s\n", __FILE_NAME__, p_dir);
   DIR dj;      /* Directory object */
   FILINFO fno; /* File information */
   memset(&dj, 0, sizeof dj);
   memset(&fno, 0, sizeof fno);
   fr = f_findfirst(&dj, &fno, p_dir, "*");
   if (FR_OK != fr) {
-    printf("f_findfirst error: %s (%d)\n", FRESULT_str(fr), fr);
+    printf("[%s]: f_findfirst error: %s (%d)\n", __FILE_NAME__, FRESULT_str(fr), fr);
     return;
   }
 
@@ -209,7 +209,7 @@ void ls2file(const char *dir, const char *path) {
   FIL fil;
   fr = f_open(&fil, path, FA_CREATE_ALWAYS | FA_WRITE);
   if (FR_OK != fr && FR_EXIST != fr)
-    panic("f_open(%s) error: %s (%d) \n", path, FRESULT_str(fr), fr);
+    panic("[%s]: f_open(%s) error: %s (%d) \n", __FILE_NAME__, path, FRESULT_str(fr), fr);
   // f_printf(&fil, "{");
   while (fr == FR_OK && fno.fname[0]) { /* Repeat while an item is found */
     /* Create a string that includes the file name, the file size and the
@@ -229,17 +229,17 @@ void ls2file(const char *dir, const char *path) {
     // Create a string that includes the file name, the file size and the attributes string.
     if (!(fno.fattrib & AM_DIR) && fno.fname[0] != '.' && EndsWith(fno.fname, ".bmp")) {
       // f_printf(&fil, "%d %s\r\n", filNum, fno.fname);
-      f_printf(&fil, "pic/%s\r\n", fno.fname);
+      f_printf(&fil, "pic/%s\n", fno.fname);
       filNum++;
     }
     fr = f_findnext(&dj, &fno); /* Search for next item */
   }
   // f_printf(&fil, "}");
-  // printf("The number of file names written is: %d\n" ,filNum);
+  // printf("[%s]: The number of file names written is: %d\n", __FILE_NAME__, filNum);
   // scanFileNum = filNum;
   fr = f_close(&fil);
   if (FR_OK != fr) {
-    printf("f_close error: %s (%d)\n", FRESULT_str(fr), fr);
+    printf("[%s]: f_close error: %s (%d)\n", __FILE_NAME__, FRESULT_str(fr), fr);
   }
   f_closedir(&dj);
 }
@@ -257,18 +257,20 @@ void sdInitTest() {
   // http://elm-chan.org/fsw/ff/00index_e.html
   sd_card_t *pSD = sd_get_by_num(0);
   FRESULT fr = f_mount(&pSD->fatfs, pSD->pcName, 1);
-  if (FR_OK != fr) panic("f_mount error: %s (%d)\n", FRESULT_str(fr), fr);
+  if (FR_OK != fr) {
+    panic("[%s]: f_mount error: %s (%d)\n", __FILE_NAME__, FRESULT_str(fr), fr);
+  }
   FIL fil;
   const char *const filename = "filename.txt";
   fr = f_open(&fil, filename, FA_OPEN_APPEND | FA_WRITE);
   if (FR_OK != fr && FR_EXIST != fr)
-    panic("f_open(%s) error: %s (%d)\n", filename, FRESULT_str(fr), fr);
+    panic("[%s]: f_open(%s) error: %s (%d)\n", __FILE_NAME__, filename, FRESULT_str(fr), fr);
   if (f_printf(&fil, "Hello, world!\n") < 0) {
-    printf("f_printf failed\n");
+    printf("[%s]: f_printf(%s) failed\n", __FILE_NAME__, filename);
   }
   fr = f_close(&fil);
   if (FR_OK != fr) {
-    printf("f_close error: %s (%d)\n", FRESULT_str(fr), fr);
+    printf("[%s]: f_close(%s) error: %s (%d)\n", __FILE_NAME__, filename, FRESULT_str(fr), fr);
   }
   f_unmount(pSD->pcName);
 
@@ -317,7 +319,7 @@ void sdScanDir() {
   run_mount();
 
   ls2file("0:/pic", fileList);
-  printf("ls %s\r\n", fileList);
+  printf("[%s]: ls %s\r\n", __FILE_NAME__, fileList);
   run_cat(fileList);
 
   run_unmount();
@@ -337,17 +339,17 @@ void fil2array(int index) {
 
   fr = f_open(&fil, fileList, FA_READ);
   if (FR_OK != fr && FR_EXIST != fr) {
-    printf("fil2array open error\r\n");
+    printf("[%s]: fil2array open error\n", __FILE_NAME__);
     run_unmount();
     return;
   }
 
-  // printf("ls array path\r\n");
+  // printf("[%s]: ls array path\r\n", __FILE_NAME__);
   for (int i = 0; i < index; i++) {
     if (f_gets(pathName, 999, &fil) == NULL) {
       break;
     }
-    // printf("%s", pathName[i]);
+    // printf("[%s]: %s", pathName[i], __FILE_NAME__);
   }
 
   f_close(&fil);
@@ -369,12 +371,12 @@ static void setPathIndex(int index) {
 
   fr = f_open(&fil, "index.txt", FA_OPEN_ALWAYS | FA_WRITE);
   if (FR_OK != fr && FR_EXIST != fr) {
-    printf("setPathIndex open error\r\n");
+    printf("[%s]: setPathIndex (\"index.txt\") open error\n", __FILE_NAME__);
     run_unmount();
     return;
   }
   f_printf(&fil, "%d\r\n", index);
-  printf("set index is %d\r\n", index);
+  printf("[%s]: set index is %d\n", __FILE_NAME__, index);
 
   f_close(&fil);
   run_unmount();
@@ -398,7 +400,7 @@ static int getPathIndex() {
 
   fr = f_open(&fil, "index.txt", FA_READ);
   if (FR_OK != fr && FR_EXIST != fr) {
-    printf("getPathIndex open error\r\n");
+    printf("[%s]: getPathIndex (\"index.txt\") open error\n", __FILE_NAME__);
     run_unmount();
     return 0;
   }
@@ -406,13 +408,13 @@ static int getPathIndex() {
   sscanf(indexs, "%d", &index);  // char to int
   if (index > scanFileNum) {
     index = 1;
-    printf("get index over scanFileNum\r\n");
+    printf("[%s]: get index over scanFileNum\n", __FILE_NAME__);
   }
   if (index < 1) {
     index = 1;
-    printf("get index over one\r\n");
+    printf("[%s]: get index over one\n", __FILE_NAME__);
   }
-  printf("get index is %d\r\n", index);
+  printf("[%s]: get index is %d\n", __FILE_NAME__, index);
 
   f_close(&fil);
   run_unmount();
@@ -430,15 +432,15 @@ void setFilePath() {
   int index = 1;
 
   if (isFileExist("index.txt")) {
-    printf("index.txt is exist\r\n");
+    printf("[%s]: index.txt exists\n", __FILE_NAME__);
     index = getPathIndex();
   } else {
-    printf("creat and set Index 0\r\n");
+    printf("[%s]: create and set Index 0\n", __FILE_NAME__);
     setPathIndex(1);
   }
 
   fil2array(index);
-  printf("setFilePath is %s\r\n", pathName);
+  printf("[%s]: setFilePath is %s\n", __FILE_NAME__, pathName);
 }
 
 /* 
@@ -455,7 +457,7 @@ void updatePathIndex() {
   if (index > scanFileNum)
     index = 1;
   setPathIndex(index);
-  printf("updatePathIndex index is %d\r\n", index);
+  printf("[%s]: updatePathIndex index is %d\n", __FILE_NAME__, index);
 }
 
 /* 
@@ -475,7 +477,7 @@ char isFileExist(const char *path) {
 
   fr = f_open(&fil, path, FA_READ);
   if (FR_OK != fr && FR_EXIST != fr) {
-    printf("%s is not exist\r\n", path);
+    printf("[%s]: %s is not exist\n", __FILE_NAME__, path);
     run_unmount();
     return 0;
   }
@@ -608,8 +610,8 @@ char file_temporary_gets(char temp[][fileLen], const char *path) {
 
   fr = f_open(&fil, path, FA_READ);
   if (FR_OK != fr && FR_EXIST != fr) {
-    printf("Error opening temporary file\r\n");
-    printf("f_close error: %s (%d)\n", FRESULT_str(fr), fr);
+    printf("[%s]: Error opening temporary file\n", __FILE_NAME__);
+    printf("[%s]: f_close error: %s (%d)\n", __FILE_NAME__, FRESULT_str(fr), fr);
     run_unmount();
     return -1;
   }
@@ -639,7 +641,7 @@ void file_temporary_puts(char temp[][fileLen], char count, const char *path) {
   FIL fil;
   fr = f_open(&fil, path, FA_CREATE_ALWAYS | FA_WRITE);
   if (FR_OK != fr && FR_EXIST != fr)
-    panic("f_open(%s) error: %s (%d) \n", path, FRESULT_str(fr), fr);
+    panic("[%s]: f_open(%s) error: %s (%d)\n", __FILE_NAME__, path, FRESULT_str(fr), fr);
 
   for (uint8_t i = 0; i < count; i++) {
     f_puts(temp[i], &fil);
@@ -678,14 +680,14 @@ int Temporary_file(char temp[][10], int count) {
   char str1[10] = "ls";
   char str2[10];
   k = (count % 50) ? (count / 50) : (count / 50 - 1);
-  
+
   uint8_t i = 0;
   for (; i < k; i++) {
     memcpy(temp[i], str1, sizeof(str1));
     sprintf(str2, "%d", i);
     strcat(temp[i], str2);
   }
-  printf("Total number of temporary file names generated: %d\r\n", k);
+  printf("[%s]: Total number of temporary file names generated: %d\n", __FILE_NAME__, k);
   return i;
 }
 
@@ -699,24 +701,24 @@ int Temporary_file(char temp[][10], int count) {
 void file_rm_ren(char temp[][10], int count) {
   FRESULT fr; /* Return value */
 
-  printf("remove temporary file\r\n");
+  printf("[%s]: remove temporary file\n", __FILE_NAME__);
   for (int i = 0; i < count; i++) {
     fr = f_unlink(temp[i]);
     if (FR_OK != fr) {
-      printf("f_unlink error: %s (%d)\n", FRESULT_str(fr), fr);
+      printf("[%s]: f_unlink(%s) error: %s (%d)\n", __FILE_NAME__, temp[i], FRESULT_str(fr), fr);
     }
   }
 
-  printf("remove fileList\r\n");
+  printf("[%s]: remove fileList\n", __FILE_NAME__);
   fr = f_unlink(fileList);
   if (FR_OK != fr) {
-    printf("f_unlink error: %s (%d)\n", FRESULT_str(fr), fr);
+    printf("[%s]: f_unlink(%s) error: %s (%d)\n", __FILE_NAME__, fileList, FRESULT_str(fr), fr);
   }
 
-  printf("rename fileListNew to fileList\r\n");
+  printf("[%s]: rename fileListNew (\"%s\") to fileList (\"%s\")\n", __FILE_NAME__, fileListNew, fileList);
   fr = f_rename(fileListNew, fileList);
   if (FR_OK != fr) {
-    printf("f_rename error: %s (%d)\n", FRESULT_str(fr), fr);
+    printf("[%s]: f_rename error: %s (%d)\n", __FILE_NAME__, FRESULT_str(fr), fr);
   }
 }
 
@@ -739,7 +741,7 @@ void file_sort() {
 
   fr = f_open(&fil, fileList, FA_READ);
   if (FR_OK != fr && FR_EXIST != fr) {
-    printf("file open error2\r\n");
+    printf("[%s]: file open(%s) error2\n", __FILE_NAME__, fileList);
     run_unmount();
     return;
   }
@@ -759,18 +761,18 @@ void file_sort() {
     custom_qsort(temp, 0, scanFileNum1 - 1);
     fr = f_close(&fil);
     if (FR_OK != fr) {
-      printf("f_close error: %s (%d)\n", FRESULT_str(fr), fr);
+      printf("[%s]: f_close error: %s (%d)\n", __FILE_NAME__, FRESULT_str(fr), fr);
     }
 
     fr = f_open(&fil, fileList, FA_CREATE_ALWAYS | FA_WRITE);
     if (FR_OK != fr && FR_EXIST != fr)
-      panic("f_open1(%s) error: %s (%d) \n", fileList, FRESULT_str(fr), fr);
+      panic("[%s]: f_open1(%s) error: %s (%d)\n", __FILE_NAME__, fileList, FRESULT_str(fr), fr);
 
     file_puts(temp, scanFileNum1, &fil);
 
     fr = f_close(&fil);
     if (FR_OK != fr) {
-      printf("f_close error: %s (%d)\n", FRESULT_str(fr), fr);
+      printf("[%s]: f_close error: %s (%d)\n", __FILE_NAME__, FRESULT_str(fr), fr);
     }
   } else {
     file_count1 = 0;
@@ -790,12 +792,12 @@ void file_sort() {
 
     fr = f_close(&fil);
     if (FR_OK != fr) {
-      printf("f_close error: %s (%d)\n", FRESULT_str(fr), fr);
+      printf("[%s]: f_close error: %s (%d)\n", __FILE_NAME__, FRESULT_str(fr), fr);
     }
 
     fr = f_open(&fil, fileListNew, FA_CREATE_ALWAYS | FA_WRITE);
     if (FR_OK != fr && FR_EXIST != fr)
-      panic("f_open1(%s) error: %s (%d) \n", fileListNew, FRESULT_str(fr), fr);
+      panic("[%s]: f_open1(%s) error: %s (%d)\n", __FILE_NAME__, fileListNew, FRESULT_str(fr), fr);
 
     file_puts(templist1, fileNumber / 2, &fil);
 
@@ -812,7 +814,7 @@ void file_sort() {
     }
     fr = f_close(&fil);
     if (FR_OK != fr) {
-      printf("f_close error: %s (%d)\n", FRESULT_str(fr), fr);
+      printf("[%s]: f_close error: %s (%d)\n", __FILE_NAME__, FRESULT_str(fr), fr);
     }
 
     file_rm_ren(Temporary_file_name, file_count);

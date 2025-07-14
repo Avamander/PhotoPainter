@@ -38,7 +38,7 @@
 #include <stdio.h>
 
 #if DEBUG
-	#define Debug(__info,...) Serial.println("Debug: " __info,##__VA_ARGS__)
+	#define Debug(__info,...) printf("Debug: " __info,##__VA_ARGS__)
 #else
 	#define Debug(__info,...)  
 #endif
