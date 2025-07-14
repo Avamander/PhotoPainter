@@ -103,8 +103,8 @@ void Paint_NewImage(uint8_t* image, uint16_t Width, uint16_t Height, uint16_t Ro
   Paint.Scale = 2;
   Paint.WidthByte = (Width % 8 == 0) ? (Width / 8) : (Width / 8 + 1);
   Paint.HeightByte = Height;
-  //    printf("WidthByte = %d, HeightByte = %d\r\n", __FILE_NAME__, Paint.WidthByte, Paint.HeightByte);
-  //    printf(" EPD_WIDTH / 8 = %d\r\n", __FILE_NAME__,  122 / 8);
+  //    printf("WidthByte = %d, HeightByte = %d\n", __FILE_NAME__, Paint.WidthByte, Paint.HeightByte);
+  //    printf(" EPD_WIDTH / 8 = %d\n", __FILE_NAME__,  122 / 8);
 
   Paint.Rotate = Rotate;
   Paint.Mirror = MIRROR_NONE;
@@ -134,7 +134,7 @@ parameter:
 ******************************************************************************/
 void Paint_SetRotate(uint16_t Rotate) {
   if (Rotate == ROTATE_0 || Rotate == ROTATE_90 || Rotate == ROTATE_180 || Rotate == ROTATE_270) {
-    Debug("Set image Rotate %d\r\n", Rotate);
+    printf("[%s]: Set image Rotate %d\n", __FILE_NAME__, Rotate);
     if (Rotate == ROTATE_90 || Rotate == ROTATE_270) {
       if (Paint.WidthMemory == Paint.Width) {
         Paint.Width = Paint.HeightMemory;
@@ -148,7 +148,7 @@ void Paint_SetRotate(uint16_t Rotate) {
     }
     Paint.Rotate = Rotate;
   } else {
-    Debug("rotate = 0, 90, 180, 270\r\n");
+    printf("[%s]: rotate = 0, 90, 180, 270\n", __FILE_NAME__);
   }
 }
 
@@ -168,11 +168,10 @@ parameter:
 ******************************************************************************/
 void Paint_SetMirroring(uint8_t mirror) {
   if (mirror == MIRROR_NONE || mirror == MIRROR_HORIZONTAL || mirror == MIRROR_VERTICAL || mirror == MIRROR_ORIGIN) {
-    Debug("mirror image x:%s, y:%s\r\n", (mirror & 0x01) ? "mirror" : "none", ((mirror >> 1) & 0x01) ? "mirror" : "none");
+    printf("[%s]: mirror image x:%s, y:%s\n", __FILE_NAME__, (mirror & 0x01) ? "mirror" : "none", ((mirror >> 1) & 0x01) ? "mirror" : "none");
     Paint.Mirror = mirror;
   } else {
-    Debug("mirror should be MIRROR_NONE, MIRROR_HORIZONTAL, \
-        MIRROR_VERTICAL or MIRROR_ORIGIN\r\n");
+    printf("[%s]: mirror should be MIRROR_NONE, MIRROR_HORIZONTAL, MIRROR_VERTICAL or MIRROR_ORIGIN\n", __FILE_NAME__);
   }
 }
 
@@ -188,8 +187,8 @@ void Paint_SetScale(uint8_t scale) {
     Paint.WidthByte = (Paint.WidthMemory % 2 == 0) ? (Paint.WidthMemory / 2) : (Paint.WidthMemory / 2 + 1);
     ;
   } else {
-    Debug("Set Scale Input parameter error\r\n");
-    Debug("Scale Only support: 2 4 7\r\n");
+    printf("[%s]: Set Scale Input parameter error\n", __FILE_NAME__);
+    printf("[%s]: Scale Only support: 2 4 7\n", __FILE_NAME__);
   }
 }
 /******************************************************************************
@@ -201,7 +200,7 @@ parameter:
 ******************************************************************************/
 void Paint_SetPixel(uint16_t Xpoint, uint16_t Ypoint, uint16_t Color) {
   if (Xpoint > Paint.Width || Ypoint > Paint.Height) {
-    Debug("Exceeding display boundaries\r\n");
+    printf("[%s]: Exceeding display boundaries\n", __FILE_NAME__);
     return;
   }
   uint16_t X, Y;
@@ -244,17 +243,18 @@ void Paint_SetPixel(uint16_t Xpoint, uint16_t Ypoint, uint16_t Color) {
   }
 
   if (X > Paint.WidthMemory || Y > Paint.HeightMemory) {
-    Debug("Exceeding display boundaries\r\n");
+    printf("[%s]: Exceeding display boundaries\n", __FILE_NAME__);
     return;
   }
 
   if (Paint.Scale == 2) {
     uint32_t Addr = X / 8 + Y * Paint.WidthByte;
     uint8_t Rdata = Paint.Image[Addr];
-    if (Color == BLACK)
+    if (Color == BLACK) {
       Paint.Image[Addr] = Rdata & ~(0x80 >> (X % 8));
-    else
+    } else {
       Paint.Image[Addr] = Rdata | (0x80 >> (X % 8));
+    }
   } else if (Paint.Scale == 4) {
     uint32_t Addr = X / 4 + Y * Paint.WidthByte;
     Color = Color % 4;  //Guaranteed color scale is 4  --- 0~3
@@ -267,7 +267,7 @@ void Paint_SetPixel(uint16_t Xpoint, uint16_t Ypoint, uint16_t Color) {
     uint8_t Rdata = Paint.Image[Addr];
     Rdata = Rdata & (~(0xF0 >> ((X % 2) * 4)));  //Clear first, then set value
     Paint.Image[Addr] = Rdata | ((Color << 4) >> ((X % 2) * 4));
-    // printf("Add =  %d ,data = %d\r\n", __FILE_NAME__, Addr, Rdata);
+    // printf("[%s]: Add =  %d ,data = %d\n", __FILE_NAME__, Addr, Rdata);
   }
 }
 
@@ -324,7 +324,7 @@ parameter:
 void Paint_DrawPoint(uint16_t Xpoint, uint16_t Ypoint, uint16_t Color,
                      DOT_PIXEL Dot_Pixel, DOT_STYLE Dot_Style) {
   if (Xpoint > Paint.Width || Ypoint > Paint.Height) {
-    Debug("Paint_DrawPoint Input exceeds the normal display range\r\n");
+    printf("[%s]: Paint_DrawPoint Input exceeds the normal display range\n", __FILE_NAME__);
     return;
   }
 
@@ -334,7 +334,7 @@ void Paint_DrawPoint(uint16_t Xpoint, uint16_t Ypoint, uint16_t Color,
       for (YDir_Num = 0; YDir_Num < 2 * Dot_Pixel - 1; YDir_Num++) {
         if (Xpoint + XDir_Num - Dot_Pixel < 0 || Ypoint + YDir_Num - Dot_Pixel < 0)
           break;
-        // printf("x = %d, y = %d\r\n", __FILE_NAME__, Xpoint + XDir_Num - Dot_Pixel, Ypoint + YDir_Num - Dot_Pixel);
+        // printf("[%s]: x = %d, y = %d\n", __FILE_NAME__, Xpoint + XDir_Num - Dot_Pixel, Ypoint + YDir_Num - Dot_Pixel);
         Paint_SetPixel(Xpoint + XDir_Num - Dot_Pixel, Ypoint + YDir_Num - Dot_Pixel, Color);
       }
     }
@@ -361,7 +361,7 @@ parameter:
 void Paint_DrawLine(uint16_t Xstart, uint16_t Ystart, uint16_t Xend, uint16_t Yend,
                     uint16_t Color, DOT_PIXEL Line_width, LINE_STYLE Line_Style) {
   if (Xstart > Paint.Width || Ystart > Paint.Height || Xend > Paint.Width || Yend > Paint.Height) {
-    Debug("Paint_DrawLine Input exceeds the normal display range\r\n");
+    printf("[%s]: Paint_DrawLine Input exceeds the normal display range\n", __FILE_NAME__);
     return;
   }
 
@@ -382,7 +382,7 @@ void Paint_DrawLine(uint16_t Xstart, uint16_t Ystart, uint16_t Xend, uint16_t Ye
     Dotted_Len++;
     //Painted dotted line, 2 point is really virtual
     if (Line_Style == LINE_STYLE_DOTTED && Dotted_Len % 3 == 0) {
-      //Debug("LINE_DOTTED\r\n");
+      //printf("[%s]: LINE_DOTTED\n", __FILE_NAME__);
       Paint_DrawPoint(Xpoint, Ypoint, IMAGE_BACKGROUND, Line_width, DOT_STYLE_DFT);
       Dotted_Len = 0;
     } else {
@@ -417,7 +417,7 @@ parameter:
 void Paint_DrawRectangle(uint16_t Xstart, uint16_t Ystart, uint16_t Xend, uint16_t Yend,
                          uint16_t Color, DOT_PIXEL Line_width, DRAW_FILL Draw_Fill) {
   if (Xstart > Paint.Width || Ystart > Paint.Height || Xend > Paint.Width || Yend > Paint.Height) {
-    Debug("Input exceeds the normal display range\r\n");
+    printf("[%s]: Input exceeds the normal display range\n", __FILE_NAME__);
     return;
   }
 
@@ -448,7 +448,7 @@ parameter:
 void Paint_DrawCircle(uint16_t X_Center, uint16_t Y_Center, uint16_t Radius,
                       uint16_t Color, DOT_PIXEL Line_width, DRAW_FILL Draw_Fill) {
   if (X_Center > Paint.Width || Y_Center >= Paint.Height) {
-    Debug("Paint_DrawCircle Input exceeds the normal display range\r\n");
+    printf("[%s]: Paint_DrawCircle Input exceeds the normal display range\n", __FILE_NAME__);
     return;
   }
 
@@ -518,7 +518,7 @@ void Paint_DrawChar(uint16_t Xpoint, uint16_t Ypoint, const char Acsii_Char,
   uint16_t Page, Column;
 
   if (Xpoint > Paint.Width || Ypoint > Paint.Height) {
-    Debug("Paint_DrawChar Input exceeds the normal display range\r\n");
+    printf("[%s]: Paint_DrawChar Input exceeds the normal display range\n", __FILE_NAME__);
     return;
   }
 
@@ -567,7 +567,7 @@ void Paint_DrawString_EN(uint16_t Xstart, uint16_t Ystart, const char* pString,
   uint16_t Ypoint = Ystart;
 
   if (Xstart > Paint.Width || Ystart > Paint.Height) {
-    Debug("Paint_DrawString_EN Input exceeds the normal display range\r\n");
+    printf("[%s]: Paint_DrawString_EN Input exceeds the normal display range\n", __FILE_NAME__);
     return;
   }
 
@@ -708,7 +708,7 @@ void Paint_DrawNum(uint16_t Xpoint, uint16_t Ypoint, int32_t Nummber,
   uint8_t* pStr = Str_Array;
 
   if (Xpoint > Paint.Width || Ypoint > Paint.Height) {
-    Debug("Paint_DisNum Input exceeds the normal display range\r\n");
+    printf("[%s]: Paint_DisNum Input exceeds the normal display range\n", __FILE_NAME__);
     return;
   }
 

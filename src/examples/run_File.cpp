@@ -228,7 +228,7 @@ void ls2file(const char *dir, const char *path) {
     }*/
     // Create a string that includes the file name, the file size and the attributes string.
     if (!(fno.fattrib & AM_DIR) && fno.fname[0] != '.' && EndsWith(fno.fname, ".bmp")) {
-      // f_printf(&fil, "%d %s\r\n", filNum, fno.fname);
+      // f_printf(&fil, "%d %s\n", filNum, fno.fname);
       f_printf(&fil, "pic/%s\n", fno.fname);
       filNum++;
     }
@@ -319,7 +319,7 @@ void sdScanDir() {
   run_mount();
 
   ls2file("0:/pic", fileList);
-  printf("[%s]: ls %s\r\n", __FILE_NAME__, fileList);
+  printf("[%s]: ls %s\n", __FILE_NAME__, fileList);
   run_cat(fileList);
 
   run_unmount();
@@ -344,7 +344,7 @@ void fil2array(int index) {
     return;
   }
 
-  // printf("[%s]: ls array path\r\n", __FILE_NAME__);
+  // printf("[%s]: ls array path\n", __FILE_NAME__);
   for (int i = 0; i < index; i++) {
     if (f_gets(pathName, 999, &fil) == NULL) {
       break;
@@ -375,7 +375,7 @@ static void setPathIndex(int index) {
     run_unmount();
     return;
   }
-  f_printf(&fil, "%d\r\n", index);
+  f_printf(&fil, "%d\n", index);
   printf("[%s]: set index is %d\n", __FILE_NAME__, index);
 
   f_close(&fil);

@@ -135,7 +135,7 @@ void PCF85063_alarm_Time_Enabled(Time_data time) {
       time.days = time.days - 30;
     }
   }
-  // printf("[%s]: %d-%d-%d %d:%d:%d\r\n", __FILE_NAME__, time.years, time.months, time.days, time.hours, time.minutes, time.seconds);
+  // printf("[%s]: %d-%d-%d %d:%d:%d\n", __FILE_NAME__, time.years, time.months, time.days, time.hours, time.minutes, time.seconds);
   PCF85063_Write_Byte(CONTROL_2_REG, PCF85063_Read_Byte(CONTROL_2_REG) | 0x80);  // Alarm on
   PCF85063_Write_Byte(DAY_ALARM_REG, DecToBcd(time.days) & 0x7F);
   PCF85063_Write_Byte(HOUR_ARARM_REG, DecToBcd(time.hours) & 0x7F);
@@ -171,7 +171,7 @@ void PCF85063_test() {
   while (true) {
     Time_data T;
     T = PCF85063_GetTime();
-    printf("[%s]: %d-%d-%d %d:%d:%d\r\n", __FILE_NAME__, T.years, T.months, T.days, T.hours, T.minutes, T.seconds);
+    printf("[%s]: %d-%d-%d %d:%d:%d\n", __FILE_NAME__, T.years, T.months, T.days, T.hours, T.minutes, T.seconds);
     count += 1;
     delay(1000);
     if (count > 20) {
